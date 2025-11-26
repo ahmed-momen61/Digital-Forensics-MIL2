@@ -1,75 +1,84 @@
-Windows Forensic Artifact Extractor (Python)
+MBR Partition Table Analyzer (Python)
 
-- Overview
+Overview
 
-This Python script is a lightweight digital forensics tool designed to automate the extraction of critical artifacts from Windows registry hives. It was developed as part of a forensic investigation case study (KH5036CMD Milestone 2) to analyze user behavior, installed applications, and USB device history on a suspect Windows 7 workstation.
+This Python script is a specialized forensic utility designed to parse the Master Boot Record (MBR) of a raw disk image. It was developed for Task 1 of the forensic investigation (KH5036CMD) to verify the disk structure and automatically identify the correct starting sector of the target partition (Partition 2) for mounting and analysis.
 
-The tool parses standard Windows Registry hives (SAM, SOFTWARE, SYSTEM, NTUSER.DAT) without requiring heavy forensic suites like EnCase or FTK for the initial triage.
+Features
 
-- Features
+The script performs the following automated analyses:
 
-User Account Enumeration: Extracts a list of local user accounts from the SAM hive.
+MBR Parsing: Reads the first 512 bytes of the disk image to locate the partition table.
 
-Installed Applications: Lists installed software and version numbers from the SOFTWARE hive.
+Partition Enumeration: Iterates through the four primary partition entries defined in the MBR.
 
-USB Device History: Retrieves connected USB devices, including Vendor, Product, and Last Connection Time stamps from the SYSTEM hive.
+Data Decoding: Uses the struct library to unpack binary data into human-readable fields:
 
-User Activity Analysis:
+Status: Identifies Bootable vs. Non-Bootable partitions.
 
-RunMRU: Decodes commands typed into the Windows "Run" box.
+Type: Extracts the file system type code (e.g., 0x7 for NTFS).
 
-UserAssist: Decodes ROT13-encrypted entries to reveal executed programs and their usage count.
+Start Sector: Calculates the exact LBA offset.
+
+Size: Displays total sectors for capacity verification.
+
+Target Highlighting: Automatically flags Partition 2, providing the specific start sector required for the coursework task.
 
 - Prerequisites
 
-Python 3.x installed on your machine.
+Python 3.x installed on your system.
 
-python-registry library.
-
-To install the required library, run:
-
-pip install python-registry
-
+No external libraries required (Built using standard os and struct modules).
 
 - Usage
 
-Export Registry Hives: Use a tool like FTK Imager, Autopsy, or KAPE to extract the following files from the target disk image:
+Step 1: Setup
 
-C:\Windows\System32\config\SAM
+Place the script (mbr_analyzer.py) in the same directory as your forensic disk image.
 
-C:\Windows\System32\config\SOFTWARE
+Step 2: Configuration
 
-C:\Windows\System32\config\SYSTEM
+By default, the script looks for a file named "CW Image.dd". If your image has a different name, edit this line in the code:
 
-C:\Users\[USERNAME]\NTUSER.DAT
-
-Place Files: Put these hive files in the same directory as the script (or know their full paths).
-
-Run the Script:
-
-python forensic_script.py
+image_filename = "CW Image.dd"
 
 
-Follow Prompts: The script will check for the files automatically. If not found, you can drag and drop the file into the terminal window when prompted.
+Step 3: Run the Script
 
-- Code Explanation
+Execute the script via your terminal or command prompt:
 
-The script is modular, with specific functions handling each registry hive:
+python mbr_analyzer.py
 
-rot13(s): Helper function to decode UserAssist entries.
 
-show_user_accounts(sam_hive): Parses SAM\Domains\Account\Users\Names.
+- Output Example
 
-show_installed_apps(software_hive): Iterates through Microsoft\Windows\CurrentVersion\Uninstall.
+The script outputs a clean table to the console:
 
-show_usb_history(system_hive): Extracts artifacts from ControlSet001\Enum\USBSTOR, converting timestamps to human-readable format.
+[*] Analyzing Partition Table for: CW Image.dd
+-----------------------------------------------------------------
+Part  Status      Type       Start Sector    Size (Sectors)
+-----------------------------------------------------------------
+1     Bootable    0x7        2048            204800
+2     Non-Boot    0x7        206848          41734144
+    [!] NOTE: Task requires focus on Partition 2 (Start: 206848)
 
-show_user_activity(ntuser_hive): Analyses RunMRU for command history and UserAssist for program execution evidence.
+
+- Code Structure
+
+The code logic is straightforward:
+
+f.read(512): Reads the Master Boot Record.
+
+seek(446): Jumps to the partition table offset.
+
+struct.unpack: Decodes the 16-byte entries using the format string <B 3x B 3x I I (Little Endian, Byte, Skip 3, Byte, Skip 3, Int, Int).
 
 - Disclaimer
 
-This tool is intended for educational and authorized forensic analysis purposes only. Always ensure you have proper authorization before analyzing data from a system.
+This tool is intended for educational and authorized forensic analysis purposes only. Always ensure you have the legal right to analyze the data you are processing.
 
 - Author
+"AhmedMoamen.61"
 
-[AhmedMoamen.61]
+[Your Name]
+Digital Forensics Student
