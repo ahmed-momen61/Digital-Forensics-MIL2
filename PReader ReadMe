@@ -1,0 +1,75 @@
+Windows Forensic Artifact Extractor (Python)
+
+- Overview
+
+This Python script is a lightweight digital forensics tool designed to automate the extraction of critical artifacts from Windows registry hives. It was developed as part of a forensic investigation case study (KH5036CMD Milestone 2) to analyze user behavior, installed applications, and USB device history on a suspect Windows 7 workstation.
+
+The tool parses standard Windows Registry hives (SAM, SOFTWARE, SYSTEM, NTUSER.DAT) without requiring heavy forensic suites like EnCase or FTK for the initial triage.
+
+- Features
+
+User Account Enumeration: Extracts a list of local user accounts from the SAM hive.
+
+Installed Applications: Lists installed software and version numbers from the SOFTWARE hive.
+
+USB Device History: Retrieves connected USB devices, including Vendor, Product, and Last Connection Time stamps from the SYSTEM hive.
+
+User Activity Analysis:
+
+RunMRU: Decodes commands typed into the Windows "Run" box.
+
+UserAssist: Decodes ROT13-encrypted entries to reveal executed programs and their usage count.
+
+- Prerequisites
+
+Python 3.x installed on your machine.
+
+python-registry library.
+
+To install the required library, run:
+
+pip install python-registry
+
+
+- Usage
+
+Export Registry Hives: Use a tool like FTK Imager, Autopsy, or KAPE to extract the following files from the target disk image:
+
+C:\Windows\System32\config\SAM
+
+C:\Windows\System32\config\SOFTWARE
+
+C:\Windows\System32\config\SYSTEM
+
+C:\Users\[USERNAME]\NTUSER.DAT
+
+Place Files: Put these hive files in the same directory as the script (or know their full paths).
+
+Run the Script:
+
+python forensic_script.py
+
+
+Follow Prompts: The script will check for the files automatically. If not found, you can drag and drop the file into the terminal window when prompted.
+
+- Code Explanation
+
+The script is modular, with specific functions handling each registry hive:
+
+rot13(s): Helper function to decode UserAssist entries.
+
+show_user_accounts(sam_hive): Parses SAM\Domains\Account\Users\Names.
+
+show_installed_apps(software_hive): Iterates through Microsoft\Windows\CurrentVersion\Uninstall.
+
+show_usb_history(system_hive): Extracts artifacts from ControlSet001\Enum\USBSTOR, converting timestamps to human-readable format.
+
+show_user_activity(ntuser_hive): Analyses RunMRU for command history and UserAssist for program execution evidence.
+
+- Disclaimer
+
+This tool is intended for educational and authorized forensic analysis purposes only. Always ensure you have proper authorization before analyzing data from a system.
+
+- Author
+
+[AhmedMoamen.61]
